@@ -107,13 +107,11 @@ function Terminal({
       // Add command to output
       setOutput([...output, `${currentPath}> ${input}`]);
       
-      // Execute command (simplified for now)
+      // Execute command (simplified for now - actual terminal integration needed)
       try {
         await onWriteInput(activeTerminal, input);
-        // Simulate command output
-        setTimeout(() => {
-          setOutput(prev => [...prev, `Command executed: ${input}`]);
-        }, 500);
+        // For now, just show that command was sent
+        setOutput(prev => [...prev, `Command sent to terminal: ${input}`]);
       } catch (writeError) {
         console.error('Failed to write to terminal:', writeError);
         setOutput(prev => [...prev, `Error: ${writeError}`]);
