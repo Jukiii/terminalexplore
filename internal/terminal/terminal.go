@@ -33,6 +33,13 @@ type TerminalManager struct {
 	mu        sync.Mutex
 }
 
+// GetTerminals returns the terminals map (needed for path sync)
+func (tm *TerminalManager) GetTerminals() map[string]*Terminal {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+	return tm.terminals
+}
+
 // NewTerminalManager creates a new TerminalManager
 func NewTerminalManager() *TerminalManager {
 	return &TerminalManager{
@@ -265,6 +272,23 @@ func (tm *TerminalManager) CloseAll() error {
 			lastErr = err
 		}
 		delete(tm.terminals, id)
+	}
+
+	return lastErr
+}
+
+// UpdateTerminalPath updates the working directory for all terminals
+func (tm *TerminalManager) UpdateTerminalPath(path string) error {
+	tm.mu.Lock()
+	defer tm.mu.Unlock()
+
+	var lastErr error
+	for _, terminal := range tm.terminals {
+		if terminal.isRunning {
+			if err := terminal.SetWorkingDir(path); err != nil {
+				lastErr = err
+			}
+		}
 	}
 
 	return lastErr
