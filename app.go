@@ -40,6 +40,12 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		currentDir = "C:\\"
 	}
+
+	// If current directory is .git, use parent directory
+	if filepath.Base(currentDir) == ".git" {
+		currentDir = filepath.Dir(currentDir)
+	}
+
 	// Set the path and ensure it's set in currentPath
 	if err := a.SetPath(currentDir); err != nil {
 		fmt.Printf("Error setting initial path: %v\n", err)
@@ -155,6 +161,15 @@ func (a *App) GetTerminalOutput(id string) (<-chan string, error) {
 		return nil, err
 	}
 	return term.GetOutput(), nil
+}
+
+// ReadTerminalOutput reads the current output from a terminal
+func (a *App) ReadTerminalOutput(id string) (string, error) {
+	term, err := a.terminalMgr.GetTerminal(id)
+	if err != nil {
+		return "", err
+	}
+	return term.GetLastOutput(), nil
 }
 
 // SetTerminalSync enables/disables terminal sync

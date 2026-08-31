@@ -13,18 +13,19 @@ import (
 
 // Terminal represents a terminal session
 type Terminal struct {
-	ID         string
-	Shell      string
-	WorkingDir string
-	cmd        *exec.Cmd
-	stdin      io.WriteCloser
-	stdout     io.Reader
-	stderr     io.Reader
-	ctx        context.Context
-	cancel     context.CancelFunc
-	outputChan chan string
-	mu         sync.Mutex
-	isRunning  bool
+	ID           string
+	Shell        string
+	WorkingDir   string
+	cmd          *exec.Cmd
+	stdin        io.WriteCloser
+	stdout       io.Reader
+	stderr       io.Reader
+	ctx          context.Context
+	cancel       context.CancelFunc
+	outputChan   chan string
+	outputBuffer []string
+	mu           sync.Mutex
+	isRunning    bool
 }
 
 // TerminalManager manages multiple terminal sessions
@@ -153,9 +154,11 @@ func (tm *TerminalManager) CreateTerminal(id, workingDir, shell string) (*Termin
 func (t *Terminal) readOutput(reader io.Reader) {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
+		line := scanner.Text()
 		t.mu.Lock()
 		if t.isRunning {
-			t.outputChan <- scanner.Text()
+			t.outputChan <- line
+			t.outputBuffer = append(t.outputBuffer, line)
 		}
 		t.mu.Unlock()
 	}
@@ -184,6 +187,18 @@ func (t *Terminal) WriteInput(input string) error {
 // GetOutput returns the output channel
 func (t *Terminal) GetOutput() <-chan string {
 	return t.outputChan
+}
+
+// GetLastOutput returns the accumulated output as a string
+func (t *Terminal) GetLastOutput() string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	var output strings.Builder
+	for _, line := range t.outputBuffer {
+		output.WriteString(line + "\n")
+	}
+	return output.String()
 }
 
 // SetWorkingDir changes the working directory

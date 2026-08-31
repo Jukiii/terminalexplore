@@ -16,7 +16,6 @@ function Navigation({ currentPath, onNavigate }: NavigationProps) {
 
   const navItems = [
     { icon: Home, label: 'ホーム', path: 'C:\\Users\\PCUSER' },
-    { icon: MonitorDown, label: 'デスクトップ', path: 'C:\\Users\\PCUSER\\Desktop' },
     { icon: Download, label: 'ダウンロード', path: 'C:\\Users\\PCUSER\\Downloads' },
     { icon: FileText, label: 'ドキュメント', path: 'C:\\Users\\PCUSER\\Documents' },
     { icon: Image, label: '画像', path: 'C:\\Users\\PCUSER\\Pictures' },
