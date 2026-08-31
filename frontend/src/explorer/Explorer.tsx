@@ -48,23 +48,20 @@ function Explorer({
         newExpanded.delete(node.Path);
       } else {
         newExpanded.add(node.Path);
+        // Load children when expanding
         if (!node.IsLoaded) {
           try {
             const children = await onLoadChildren(node.Path);
-            // Update the node with loaded children
-            if (children && children.length > 0) {
-              node.Children = children.map(child => ({
-                ...child,
-                IsDir: child.IsDir,
-                IsExpanded: false,
-                IsLoaded: false,
-                Level: node.Level + 1,
-                Children: [],
-              })) as any;
-              node.IsLoaded = true;
-              // Force re-render by updating expanded nodes
-              setExpandedNodes(new Set(newExpanded));
-            }
+            node.Children = (children || []).map(child => ({
+              ...child,
+              IsDir: child.IsDir,
+              IsExpanded: false,
+              IsLoaded: false,
+              Level: node.Level + 1,
+              Children: [],
+            })) as any;
+            node.IsLoaded = true;
+            setExpandedNodes(new Set(newExpanded));
           } catch (error) {
             console.error('Failed to load children:', error);
           }
