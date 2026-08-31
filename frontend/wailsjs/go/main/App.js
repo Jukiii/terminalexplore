@@ -58,6 +58,10 @@ export function LoadChildren(arg1) {
   return window['go']['main']['App']['LoadChildren'](arg1);
 }
 
+export function ReadTerminalOutput(arg1) {
+  return window['go']['main']['App']['ReadTerminalOutput'](arg1);
+}
+
 export function SetPath(arg1) {
   return window['go']['main']['App']['SetPath'](arg1);
 }

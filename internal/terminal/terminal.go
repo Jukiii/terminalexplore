@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 )
 
 // Terminal represents a terminal session
@@ -110,6 +111,14 @@ func (tm *TerminalManager) CreateTerminal(id, workingDir, shell string) (*Termin
 		cmd.Dir = workingDir
 	}
 
+	// Hide window on Windows
+	if runtime.GOOS == "windows" {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			HideWindow:    true,
+			CreationFlags: 0x08000000, // CREATE_NO_WINDOW
+		}
+	}
+
 	// Setup pipes
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -189,7 +198,7 @@ func (t *Terminal) GetOutput() <-chan string {
 	return t.outputChan
 }
 
-// GetLastOutput returns the accumulated output as a string
+// GetLastOutput returns the accumulated output as a string and clears the buffer
 func (t *Terminal) GetLastOutput() string {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -198,6 +207,8 @@ func (t *Terminal) GetLastOutput() string {
 	for _, line := range t.outputBuffer {
 		output.WriteString(line + "\n")
 	}
+	// Clear the buffer after reading
+	t.outputBuffer = []string{}
 	return output.String()
 }
 

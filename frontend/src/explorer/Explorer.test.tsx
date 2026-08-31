@@ -51,6 +51,7 @@ describe('Explorer Component', () => {
         onFileSelect={vi.fn()}
         onFileDoubleClick={vi.fn()}
         onLoadChildren={vi.fn()}
+        viewMode="list"
       />
     )
 
@@ -66,6 +67,7 @@ describe('Explorer Component', () => {
         onFileSelect={vi.fn()}
         onFileDoubleClick={vi.fn()}
         onLoadChildren={vi.fn()}
+        viewMode="list"
       />
     )
 
@@ -82,6 +84,7 @@ describe('Explorer Component', () => {
         onFileSelect={vi.fn()}
         onFileDoubleClick={vi.fn()}
         onLoadChildren={vi.fn()}
+        viewMode="list"
       />
     )
 

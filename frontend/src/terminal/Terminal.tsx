@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Terminal as TerminalIcon } from 'lucide-react';
+import { X, Plus, Terminal as TerminalIcon, Check } from 'lucide-react';
 import './Terminal.css';
 
 interface TerminalProps {
@@ -9,7 +9,7 @@ interface TerminalProps {
   onCreateTerminal: (id: string) => Promise<void>;
   onCloseTerminal: (id: string) => Promise<void>;
   onWriteInput: (id: string, input: string) => Promise<void>;
-  onGetOutput?: (id: string) => Promise<string[]>;
+  onGetOutput?: (id: string) => Promise<string>;
 }
 
 function Terminal({
@@ -105,15 +105,29 @@ function Terminal({
     e.preventDefault();
     if (input.trim()) {
       // Add command to output
-      setOutput([...output, `${currentPath}> ${input}`]);
+      const newOutput = [...output, `${currentPath}> ${input}`];
+      setOutput(newOutput);
       
-      // Execute command (simplified for now)
+      // Execute command
       try {
         await onWriteInput(activeTerminal, input);
-        // Simulate command output
-        setTimeout(() => {
-          setOutput(prev => [...prev, `Command executed: ${input}`]);
-        }, 500);
+        // Get output from terminal
+        if (onGetOutput) {
+          try {
+            // ReadTerminalOutput returns a string with newlines, convert to array
+            const result = await onGetOutput(activeTerminal);
+            const lines = result.split('\n').filter(line => line.trim() !== '');
+            if (lines.length > 0) {
+              setOutput(prev => [...prev, ...lines]);
+            }
+          } catch (e) {
+            console.error('Failed to get output:', e);
+            // Fallback: show a simple response
+            if (input.toLowerCase() === 'ls' || input.toLowerCase() === 'dir') {
+              setOutput(prev => [...prev, '[ファイル一覧はエクスプローラーを参照してください]']);
+            }
+          }
+        }
       } catch (writeError) {
         console.error('Failed to write to terminal:', writeError);
         setOutput(prev => [...prev, `Error: ${writeError}`]);
@@ -195,12 +209,20 @@ function Terminal({
             <Plus size={14} />
           </button>
         </div>
+        <button
+          className={`terminal-sync-button ${sync ? 'active' : ''}`}
+          onClick={() => console.log('Sync button would be handled by parent')}
+          title="ターミナル同期"
+        >
+          <Check size={14} />
+          同期
+        </button>
       </div>
       <div className="terminal-body">
         <div ref={outputRef} className="terminal-output">
           {output.map((line, index) => (
-            <div key={index} className="terminal-output-line">
-              {line}
+            <div key={index} style={{fontFamily: 'monospace', fontSize: '12px', padding: '2px 8px', color: '#cccccc'}}>
+              {line || '\u00a0'}
             </div>
           ))}
         </div>

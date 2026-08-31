@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUp, RefreshCw, Terminal, Layout, Settings, Check, GitBranch } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUp, RefreshCw, Terminal, Layout, Settings, Check, GitBranch, List, Network } from 'lucide-react';
 import './Toolbar.css';
 
 interface ToolbarProps {
@@ -9,6 +9,9 @@ interface ToolbarProps {
   onRefresh: () => void;
   onToggleTerminal: () => void;
   onToggleNavigation: () => void;
+  onToggleSettings: () => void;
+  onToggleViewMode: () => void;
+  viewMode: 'tree' | 'list';
   terminalSync: boolean;
   onToggleTerminalSync: () => void;
   gitBranch?: string;
@@ -22,6 +25,9 @@ function Toolbar({
   onRefresh,
   onToggleTerminal,
   onToggleNavigation,
+  onToggleSettings,
+  onToggleViewMode,
+  viewMode,
   terminalSync,
   onToggleTerminalSync,
   gitBranch,
@@ -88,6 +94,13 @@ function Toolbar({
           </span>
         )}
         <button
+          className="toolbar-button"
+          onClick={onToggleViewMode}
+          title={`表示切り替え (${viewMode === 'tree' ? 'リスト' : 'ツリー'})`}
+        >
+          {viewMode === 'tree' ? <List size={18} /> : <Network size={18} />}
+        </button>
+        <button
           className={`toolbar-button ${terminalSync ? 'active' : ''}`}
           onClick={onToggleTerminalSync}
           title="ターミナル同期"
@@ -109,7 +122,7 @@ function Toolbar({
         >
           <Layout size={18} />
         </button>
-        <button className="toolbar-button" title="設定">
+        <button className="toolbar-button" onClick={onToggleSettings} title="設定">
           <Settings size={18} />
         </button>
       </div>

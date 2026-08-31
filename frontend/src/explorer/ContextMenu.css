@@ -1,0 +1,41 @@
+.context-menu {
+  position: fixed;
+  background-color: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  min-width: 180px;
+  padding: 4px 0;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #cccccc;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s;
+}
+
+.context-menu-item:hover {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+.context-menu-item.danger:hover {
+  background-color: #6e2d2d;
+  color: #ff6b6b;
+}
+
+.context-menu-separator {
+  height: 1px;
+  background-color: #3c3c3c;
+  margin: 4px 0;
+}

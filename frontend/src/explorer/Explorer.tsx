@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Folder, FolderOpen, File, ChevronRight, ChevronDown } from 'lucide-react';
 import { explorer } from '../../wailsjs/go/models';
+import ContextMenu from './ContextMenu';
 import './Explorer.css';
 
 interface ExplorerProps {
@@ -10,6 +11,7 @@ interface ExplorerProps {
   onFileSelect: (file: explorer.FileInfo | null) => void;
   onFileDoubleClick: (file: explorer.FileInfo) => void;
   onLoadChildren: (path: string) => Promise<explorer.FileInfo[]>;
+  viewMode: 'tree' | 'list';
 }
 
 function Explorer({
@@ -18,10 +20,11 @@ function Explorer({
   selectedFile,
   onFileSelect,
   onFileDoubleClick,
-  onLoadChildren
+  onLoadChildren,
+  viewMode
 }: ExplorerProps) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<'tree' | 'list'>('list');
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
@@ -47,7 +50,21 @@ function Explorer({
         newExpanded.add(node.Path);
         if (!node.IsLoaded) {
           try {
-            await onLoadChildren(node.Path);
+            const children = await onLoadChildren(node.Path);
+            // Update the node with loaded children
+            if (children && children.length > 0) {
+              node.Children = children.map(child => ({
+                ...child,
+                IsDir: child.IsDir,
+                IsExpanded: false,
+                IsLoaded: false,
+                Level: node.Level + 1,
+                Children: [],
+              })) as any;
+              node.IsLoaded = true;
+              // Force re-render by updating expanded nodes
+              setExpandedNodes(new Set(newExpanded));
+            }
           } catch (error) {
             console.error('Failed to load children:', error);
           }
@@ -60,21 +77,30 @@ function Explorer({
   const renderTreeNode = (node: explorer.TreeNode, level: number = 0): React.ReactElement => {
     const isExpanded = expandedNodes.has(node.Path);
     const isSelected = selectedFile?.Path === node.Path;
+    const hasChildren = node.Children && node.Children.length > 0;
     
-    console.log('Rendering tree node:', node.Name, 'at level', level, 'expanded:', isExpanded);
+    console.log('Rendering tree node:', node.Name, 'at level', level, 'expanded:', isExpanded, 'children:', node.Children?.length);
     
     try {
       return (
         <div key={node.Path}>
           <div
             className={`tree-node ${isSelected ? 'selected' : ''}`}
-            style={{ paddingLeft: `${level * 16 + 8}px`, display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '13px' }}
+            style={{ paddingLeft: `${level * 16 + 8}px`, display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '13px', backgroundColor: isSelected ? '#0e639c' : 'transparent' }}
             onClick={() => handleNodeClick(node)}
             onDoubleClick={() => onFileDoubleClick(node)}
+            onContextMenu={(e) => {
+              onFileSelect(node);
+              handleContextMenu(e);
+            }}
           >
             {node.IsDir && (
               <span style={{width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {hasChildren ? (
+                  isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+                ) : (
+                  <span style={{width: '14px'}} />
+                )}
               </span>
             )}
             <span style={{width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
@@ -86,9 +112,9 @@ function Explorer({
             </span>
             <span style={{color: '#cccccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{node.Name}</span>
           </div>
-          {isExpanded && node.Children && node.Children.length > 0 && (
+          {isExpanded && hasChildren && (
             <div>
-              {node.Children.map((child, index) => (
+              {node.Children!.map((child, index) => (
                 <div key={child.Path || index}>
                   {renderTreeNode(child, level + 1)}
                 </div>
@@ -113,45 +139,95 @@ function Explorer({
           <span style={{width: '180px', textAlign: 'right'}}>更新日時</span>
         </div>
         <div>
-          {files.map((file, index) => (
-            <div
-              key={file.Path}
-              onClick={() => onFileSelect(file)}
-              onDoubleClick={() => onFileDoubleClick(file)}
-              style={{display: 'flex', padding: '8px 16px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #3c3c3c', minHeight: '40px', alignItems: 'center', gap: '16px'}}
-            >
-              <span style={{flex: 1, display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden'}}>
-                {file.IsDir ? <Folder size={16} /> : <File size={16} />}
-                <span style={{color: '#cccccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{file.Name}</span>
-              </span>
-              <span style={{width: '100px', textAlign: 'right', color: '#cccccc'}}>
-                {file.IsDir ? '' : formatFileSize(file.Size)}
-              </span>
-              <span style={{width: '180px', textAlign: 'right', color: '#cccccc'}}>
-                {formatDate(file.ModTime)}
-              </span>
-            </div>
-          ))}
+          {files.map((file, index) => {
+            const isSelected = selectedFile?.Path === file.Path;
+            return (
+              <div
+                key={file.Path}
+                onClick={() => onFileSelect(file)}
+                onDoubleClick={() => onFileDoubleClick(file)}
+                onContextMenu={(e) => {
+                  onFileSelect(file);
+                  handleContextMenu(e);
+                }}
+                style={{display: 'flex', padding: '8px 16px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #3c3c3c', minHeight: '40px', alignItems: 'center', gap: '16px', backgroundColor: isSelected ? '#0e639c' : 'transparent'}}
+              >
+                <span style={{flex: 1, display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden'}}>
+                  {file.IsDir ? <Folder size={16} /> : <File size={16} />}
+                  <span style={{color: isSelected ? '#ffffff' : '#cccccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isSelected ? '600' : 'normal'}}>{file.Name}</span>
+                </span>
+                <span style={{width: '100px', textAlign: 'right', color: isSelected ? '#ffffff' : '#cccccc'}}>
+                  {file.IsDir ? '' : formatFileSize(file.Size)}
+                </span>
+                <span style={{width: '180px', textAlign: 'right', color: isSelected ? '#ffffff' : '#cccccc'}}>
+                  {formatDate(file.ModTime)}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!selectedFile) return;
+    
+    // Arrow up/down: Navigate through files
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const fileList = viewMode === 'tree' && treeRoot ? getAllNodes(treeRoot) : files;
+      if (fileList.length === 0) return;
+      
+      const currentIndex = fileList.findIndex(f => f.Path === selectedFile.Path);
+      let newIndex = currentIndex;
+      
+      if (e.key === 'ArrowUp') {
+        newIndex = currentIndex > 0 ? currentIndex - 1 : fileList.length - 1;
+      } else if (e.key === 'ArrowDown') {
+        newIndex = currentIndex < fileList.length - 1 ? currentIndex + 1 : 0;
+      }
+      
+      onFileSelect(fileList[newIndex]);
+    }
+    // Right arrow: Expand tree node
+    else if (e.key === 'ArrowRight' && selectedFile.IsDir) {
+      e.preventDefault();
+      const newExpanded = new Set(expandedNodes);
+      if (!newExpanded.has(selectedFile.Path)) {
+        newExpanded.add(selectedFile.Path);
+        setExpandedNodes(newExpanded);
+      }
+    }
+    // Left arrow: Collapse tree node
+    else if (e.key === 'ArrowLeft' && selectedFile.IsDir) {
+      e.preventDefault();
+      const newExpanded = new Set(expandedNodes);
+      if (newExpanded.has(selectedFile.Path)) {
+        newExpanded.delete(selectedFile.Path);
+        setExpandedNodes(newExpanded);
+      }
+    }
+  };
+
+  const getAllNodes = (node: explorer.TreeNode): explorer.TreeNode[] => {
+    const nodes = [node];
+    if (expandedNodes.has(node.Path) && node.Children) {
+      for (const child of node.Children) {
+        nodes.push(...getAllNodes(child));
+      }
+    }
+    return nodes;
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
   return (
-    <div style={{flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#1e1e1e', color: '#cccccc', height: '100%', overflow: 'hidden'}}>
+    <div style={{flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#1e1e1e', color: '#cccccc', height: '100%', overflow: 'hidden'}} onKeyDown={handleKeyDown} tabIndex={0}>
       <div style={{display: 'flex', alignItems: 'center', padding: '8px 16px', backgroundColor: '#252526', borderBottom: '1px solid #3c3c3c', gap: '8px'}}>
-        <button
-          onClick={() => setViewMode('tree')}
-          style={{padding: '4px 12px', background: viewMode === 'tree' ? '#007acc' : 'transparent', border: '1px solid #3c3c3c', borderRadius: '4px', color: viewMode === 'tree' ? 'white' : '#cccccc', fontSize: '12px', cursor: 'pointer'}}
-        >
-          ツリー
-        </button>
-        <button
-          onClick={() => setViewMode('list')}
-          style={{padding: '4px 12px', background: viewMode === 'list' ? '#007acc' : 'transparent', border: '1px solid #3c3c3c', borderRadius: '4px', color: viewMode === 'list' ? 'white' : '#cccccc', fontSize: '12px', cursor: 'pointer'}}
-        >
-          リスト
-        </button>
         <span style={{marginLeft: 'auto', fontSize: '12px', color: '#888'}}>
           {files.length} ファイル
         </span>
@@ -164,12 +240,24 @@ function Explorer({
         ) : (
           renderFileList()
         )}
-        {files.length === 0 && (
+        {viewMode === 'list' && files.length === 0 && (
           <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#858585', fontSize: '14px'}}>
             <p>ファイルがありません</p>
           </div>
         )}
       </div>
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          file={selectedFile}
+          onClose={() => setContextMenu(null)}
+          onRefresh={() => {
+            // This will trigger a refresh of files
+            console.log('Refresh requested from context menu');
+          }}
+        />
+      )}
     </div>
   );
 }

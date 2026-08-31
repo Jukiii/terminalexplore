@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import './App.css';
-import { SetPath, GetPath, ListFiles, BuildTree, LoadChildren, GoUp, CreateTerminal, CloseTerminal, WriteTerminalInput, SetTerminalSync, GetTerminalSync, IsGitRepository, GetGitStatus, GetCurrentBranch, GetGitBranches } from '../wailsjs/go/main/App';
+import { SetPath, GetPath, ListFiles, BuildTree, LoadChildren, GoUp, CreateTerminal, CloseTerminal, WriteTerminalInput, SetTerminalSync, GetTerminalSync, IsGitRepository, GetGitStatus, GetCurrentBranch, GetGitBranches, ReadTerminalOutput } from '../wailsjs/go/main/App';
 import { explorer } from '../wailsjs/go/models';
 import Toolbar from './toolbar/Toolbar';
 import Navigation from './navigation/Navigation';
 import Explorer from './explorer/Explorer';
 import Terminal from './terminal/Terminal';
+import Settings from './settings/Settings';
 
 function App() {
   const [currentPath, setCurrentPath] = useState('');
@@ -15,10 +16,12 @@ function App() {
   const [terminalVisible, setTerminalVisible] = useState(true);
   const [terminalSync, setTerminalSync] = useState(true);
   const [activeTerminal, setActiveTerminal] = useState('1');
-  const [navigationVisible, setNavigationVisible] = useState(false);
+  const [navigationVisible, setNavigationVisible] = useState(true);
   const [isGitRepo, setIsGitRepo] = useState(false);
   const [gitBranch, setGitBranch] = useState('');
   const [gitStatus, setGitStatus] = useState('');
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [viewMode, setViewMode] = useState<'tree' | 'list'>('list');
 
   useEffect(() => {
     // Initialize with current directory
@@ -31,7 +34,7 @@ function App() {
       // Ctrl + ` or Ctrl + J: Toggle terminal
       if ((e.ctrlKey && e.key === '`') || (e.ctrlKey && e.key === 'j')) {
         e.preventDefault();
-        setTerminalVisible(!terminalVisible);
+        setTerminalVisible(prev => !prev);
       }
       // Ctrl + T: New explorer tab (not implemented yet)
       else if (e.ctrlKey && e.key === 't') {
@@ -86,7 +89,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [terminalVisible]);
+  }, []);
 
   const loadCurrentPath = async () => {
     try {
@@ -211,6 +214,9 @@ function App() {
         onRefresh={handleRefresh}
         onToggleTerminal={handleToggleTerminal}
         onToggleNavigation={handleToggleNavigation}
+        onToggleSettings={() => setSettingsVisible(!settingsVisible)}
+        onToggleViewMode={() => setViewMode(viewMode === 'tree' ? 'list' : 'tree')}
+        viewMode={viewMode}
         terminalSync={terminalSync}
         onToggleTerminalSync={handleToggleTerminalSync}
         gitBranch={gitBranch}
@@ -230,6 +236,7 @@ function App() {
           onFileSelect={setSelectedFile}
           onFileDoubleClick={handleFileDoubleClick}
           onLoadChildren={LoadChildren}
+          viewMode={viewMode}
         />
       </div>
       {terminalVisible && (
@@ -240,6 +247,14 @@ function App() {
           onCreateTerminal={CreateTerminal}
           onCloseTerminal={CloseTerminal}
           onWriteInput={WriteTerminalInput}
+          onGetOutput={ReadTerminalOutput}
+        />
+      )}
+      {settingsVisible && (
+        <Settings
+          onClose={() => setSettingsVisible(false)}
+          terminalSync={terminalSync}
+          onToggleTerminalSync={handleToggleTerminalSync}
         />
       )}
     </div>

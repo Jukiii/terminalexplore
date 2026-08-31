@@ -163,3 +163,31 @@
 .terminal-resize-handle:hover {
   background-color: var(--accent-color);
 }
+
+.terminal-sync-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  margin-right: 8px;
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.terminal-sync-button:hover {
+  background-color: var(--hover-color);
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+}
+
+.terminal-sync-button.active {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+}

@@ -30,6 +30,8 @@ export function ListFiles():Promise<Array<explorer.FileInfo>>;
 
 export function LoadChildren(arg1:string):Promise<Array<explorer.FileInfo>>;
 
+export function ReadTerminalOutput(arg1:string):Promise<string>;
+
 export function SetPath(arg1:string):Promise<void>;
 
 export function SetTerminalSync(arg1:boolean):Promise<void>;
