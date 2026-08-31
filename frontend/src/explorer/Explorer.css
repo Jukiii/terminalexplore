@@ -1,0 +1,180 @@
+.explorer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.explorer-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 8px;
+}
+
+.view-mode-button {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-mode-button:hover {
+  background-color: var(--hover-color);
+}
+
+.view-mode-button.active {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.explorer-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  position: relative;
+}
+
+/* Tree View */
+.tree-view {
+  padding: 4px 0;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 13px;
+  user-select: none;
+}
+
+.tree-node:hover {
+  background-color: var(--hover-color);
+}
+
+.tree-node.selected {
+  background-color: var(--selection-color);
+}
+
+.tree-toggle {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tree-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.tree-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-children {
+  /* Children are rendered inline */
+}
+
+/* File List */
+.file-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.file-list-header {
+  display: flex;
+  padding: 8px 16px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.file-list-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.file-list-row {
+  display: flex;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 40px;
+}
+
+.file-list-row:hover {
+  background-color: var(--hover-color);
+}
+
+.file-list-row.selected {
+  background-color: var(--selection-color);
+}
+
+.file-list-column.name span {
+  color: var(--text-primary);
+}
+
+.file-list-column {
+  display: flex;
+  align-items: center;
+}
+
+.file-list-column.name {
+  flex: 1;
+  gap: 8px;
+}
+
+.file-list-column.name span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-list-column.size {
+  width: 100px;
+  justify-content: flex-end;
+}
+
+.file-list-column.modified {
+  width: 180px;
+  justify-content: flex-end;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
