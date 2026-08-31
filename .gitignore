@@ -1,3 +1,45 @@
-build/bin
-node_modules
-frontend/dist
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Build directory
+build/bin/
+build/dist/
+terminalexplorer/build/bin/
+terminalexplorer/build/dist/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/wailsjs/
+terminalexplorer/frontend/node_modules/
+terminalexplorer/frontend/dist/
+terminalexplorer/frontend/wailsjs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Devin
+.devin/
