@@ -45,8 +45,10 @@ function Explorer({
         newExpanded.delete(node.Path);
       } else {
         newExpanded.add(node.Path);
+        // Load children when expanding
         if (!node.IsLoaded) {
           try {
+            console.log('Loading children for:', node.Path);
             await onLoadChildren(node.Path);
           } catch (error) {
             console.error('Failed to load children:', error);
