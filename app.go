@@ -63,8 +63,8 @@ func (a *App) SetPath(path string) error {
 
 	// Sync terminal if enabled
 	if a.terminalSync {
-		// Update all running terminals
-		// For now, we'll just update the path state
+		// Update all running terminals' working directory
+		a.terminalMgr.UpdateTerminalPath(absPath)
 	}
 
 	return nil
