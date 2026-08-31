@@ -123,6 +123,16 @@ function App() {
       const root = await BuildTree();
       console.log('Tree root:', root);
       setTreeRoot(root);
+      
+      // Auto-load children for the root node
+      if (root && root.Path) {
+        try {
+          await LoadChildren(root.Path);
+          console.log('Root children loaded');
+        } catch (error) {
+          console.error('Failed to load root children:', error);
+        }
+      }
     } catch (error) {
       console.error('Failed to load tree:', error);
     }
